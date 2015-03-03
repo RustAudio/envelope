@@ -123,4 +123,3 @@ fn two<F>() -> F where F: Float {
     one + one
 }
 
-

@@ -1,8 +1,15 @@
 [package]
 
 name = "envelope"
-version = "0.0.1"
+description = "An interpolatable Envelope type along with a generic 2D Point, useful for controlling parameters over time."
+version = "0.1.3"
 authors = ["mitchmindtree <mitchell.nordine@gmail.com>"]
+readme = "README.md"
+keywords = ["interpolate", "dsp", "audio", "time", "2D"]
+license = "MIT"
+repository = "https://github.com/RustAudio/envelope.git"
+homepage = "https://github.com/RustAudio/envelope"
+
 
 [dependencies]
-rustc-serialize = "0.2.12"
+rustc-serialize = "*"
