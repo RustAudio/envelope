@@ -2,7 +2,7 @@
 #![feature(core, std_misc)]
 
 extern crate interpolation;
-extern crate "rustc-serialize" as rustc_serialize;
+extern crate rustc_serialize;
 
 pub use bezier_point::BezierPoint;
 pub use ease_point::EasePoint;
