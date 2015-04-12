@@ -1,6 +1,6 @@
 
 use interpolation::Spatial;
-use std::num::Float;
+use num::Float;
 
 
 /// Implement this for types to be used as points on an Envelope.

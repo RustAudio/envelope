@@ -1,8 +1,7 @@
 
 use interpolation::Spatial;
+use num::{Float, NumCast};
 use std::fmt::Debug;
-use std::num::Float;
-use std::num::NumCast;
 use point::Point;
 
 
@@ -53,9 +52,9 @@ impl<X, Y> Point<X, Y> for BezierPoint<X, Y>
     /// Interpolate between two points and return y for the given x.
     #[inline(always)]
     fn interpolate(x: X, start: &BezierPoint<X, Y>, end: &BezierPoint<X, Y>) -> Y {
-        let x: Y = ::std::num::NumCast::from(x).unwrap();
-        let start_x: Y = ::std::num::NumCast::from(start.x()).unwrap();
-        let end_x: Y = ::std::num::NumCast::from(end.x()).unwrap();
+        let x: Y = NumCast::from(x).unwrap();
+        let start_x: Y = NumCast::from(start.x()).unwrap();
+        let end_x: Y = NumCast::from(end.x()).unwrap();
         // Find x passed from start of interpolation.
         let x_pos = x - start_x;
         // Find duration of interpolation.
@@ -63,13 +62,13 @@ impl<X, Y> Point<X, Y> for BezierPoint<X, Y>
         // Set gradient for interpolation.
         let gradient_y = end.y - start.y;
         // If there is no gradient between the points, simply return y from one of the points.
-        if gradient_y == Float::zero() { return start.y }
+        if gradient_y == Y::zero() { return start.y }
         let half_gradient_y: Y = gradient_y / two();
         // Consider bezier curve.
         let y2 = half_gradient_y + start.curve * half_gradient_y;
         let perc_x = x_pos / duration;
         // Re-adjust linear trajectory.
-        let ya = bezier_pt(Float::zero(), y2, perc_x);
+        let ya = bezier_pt(Y::zero(), y2, perc_x);
         let yb = bezier_pt(y2, gradient_y, perc_x);
         bezier_pt(ya, yb, perc_x) + start.y
     }
@@ -92,7 +91,7 @@ fn two<F>() -> F
     where
         F: Float
 {
-    let one: F = Float::one();
+    let one: F = F::one();
     one + one
 }
 

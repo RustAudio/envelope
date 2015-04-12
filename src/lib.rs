@@ -1,7 +1,6 @@
 
-#![feature(core, std_misc)]
-
 extern crate interpolation;
+extern crate num;
 extern crate rustc_serialize;
 
 pub use bezier_point::BezierPoint;
