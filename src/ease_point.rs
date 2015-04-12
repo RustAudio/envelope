@@ -1,7 +1,7 @@
 
 use interpolation::{Ease, EaseFunction, Spatial};
 use point::Point;
-use std::num::{Float, NumCast};
+use num::{Float, NumCast};
 
 
 /// A type whose interpolation may involve some sort of easing.

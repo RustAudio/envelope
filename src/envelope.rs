@@ -1,8 +1,8 @@
 
 use interpolation::Spatial;
+use num::Float;
 use point::Point;
 use std::cmp::Ordering;
-use std::num::Float;
 
 
 /// For designing a series of interpolation points.
