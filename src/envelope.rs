@@ -7,48 +7,47 @@ use std::cmp::Ordering;
 
 /// For designing a series of interpolation points.
 #[derive(Clone, Debug, RustcEncodable, RustcDecodable)]
-pub struct Envelope<X, Y, P> {
+pub struct Envelope<P> {
     /// Envelope represented by a vector
     /// of points (sorted by `time`).
     pub points: Vec<P>,
-    phantom_x: ::std::marker::PhantomData<X>,
-    phantom_y: ::std::marker::PhantomData<Y>,
 }
 
 
-impl<X, Y, P> Envelope<X, Y, P>
-    where
-        X: PartialOrd,
-        Y: Spatial,
-        Y::Scalar: Float,
-        P: Point<X, Y>,
+impl<P> Envelope<P>
 {
 
     /// Construct an empty envelope.
     #[inline]
-    pub fn new() -> Envelope<X, Y, P> {
-        Envelope {
-            points: Vec::new(),
-            phantom_x: ::std::marker::PhantomData,
-            phantom_y: ::std::marker::PhantomData,
-        }
+    pub fn new() -> Envelope<P> {
+        Envelope { points: Vec::new(), }
     }
 
     /// Create a new envelope from a Vec<P> and make sure that they're sorted.
     #[inline]
-    pub fn from_points(mut points: Vec<P>) -> Envelope<X, Y, P> {
+    pub fn from_points<X, Y>(mut points: Vec<P>) -> Envelope<P>
+        where
+            X: PartialOrd,
+            Y: Spatial,
+            Y::Scalar: Float,
+            P: Point<X, Y>,
+    {
         points.sort_by(|a, b| if a.x() < b.x() { Ordering::Less }
                               else if a.x() > b.x() { Ordering::Greater }
                               else { Ordering::Equal });
         Envelope {
             points: points,
-            phantom_x: ::std::marker::PhantomData,
-            phantom_y: ::std::marker::PhantomData,
         }
     }
 
     /// Add a new point to the Envelope.
-    pub fn add_point(&mut self, point: P) {
+    pub fn add_point<X, Y>(&mut self, point: P)
+        where
+            X: PartialOrd,
+            Y: Spatial,
+            Y::Scalar: Float,
+            P: Point<X, Y>,
+    {
         self.points.push(point);
         self.points.sort_by(|a, b| if a.x() < b.x() { Ordering::Less }
                                    else if a.x() > b.x() { Ordering::Greater }
@@ -60,7 +59,13 @@ impl<X, Y, P> Envelope<X, Y, P>
     /// If there is less than two points interpolation
     /// is not meaningful, thus we should just return 0.
     #[inline]
-    pub fn y(&self, x: X) -> Option<Y> {
+    pub fn y<X, Y>(&self, x: X) -> Option<Y>
+        where
+            X: PartialOrd,
+            Y: Spatial,
+            Y::Scalar: Float,
+            P: Point<X, Y>,
+    {
         if self.points.len() <= 1 { return None }
         let mut i = 1;
         while i < self.points.len() - 1 && x >= self.points[i].x() {
