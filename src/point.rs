@@ -17,7 +17,12 @@ pub trait Point<X, Y>: Copy + Clone
     fn y(&self) -> Y;
     /// Interpolate between two points and return y for the given x.
     #[inline]
-    fn interpolate(x: X, start: &Self, end: &Self) -> Y {
+    fn interpolate(x: X, start: &Self, end: &Self) -> Y where
+        Y: PartialEq,
+    {
+        // No need to interpolate if both y values are the same.
+        if start.y() == end.y() { return start.y() }
+
         let x = start.x_to_scalar(x);
         let start_x = start.x_to_scalar(start.x());
         let end_x = start.x_to_scalar(end.x());

@@ -52,6 +52,8 @@ impl<X, Y> Point<X, Y> for BezierPoint<X, Y>
     /// Interpolate between two points and return y for the given x.
     #[inline(always)]
     fn interpolate(x: X, start: &BezierPoint<X, Y>, end: &BezierPoint<X, Y>) -> Y {
+        // If there is no gradient between the points, simply return y from one of the points.
+        if start.y == end.y { return start.y }
         let x: Y = NumCast::from(x).unwrap();
         let start_x: Y = NumCast::from(start.x()).unwrap();
         let end_x: Y = NumCast::from(end.x()).unwrap();
@@ -61,8 +63,6 @@ impl<X, Y> Point<X, Y> for BezierPoint<X, Y>
         let duration = end_x - start_x;
         // Set gradient for interpolation.
         let gradient_y = end.y - start.y;
-        // If there is no gradient between the points, simply return y from one of the points.
-        if gradient_y == Y::zero() { return start.y }
         let half_gradient_y: Y = gradient_y / two();
         // Consider bezier curve.
         let y2 = half_gradient_y + start.curve * half_gradient_y;
