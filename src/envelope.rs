@@ -62,7 +62,7 @@ impl<P> Envelope<P>
     pub fn y<X, Y>(&self, x: X) -> Option<Y>
         where
             X: PartialOrd,
-            Y: Spatial,
+            Y: Spatial + PartialEq,
             Y::Scalar: Float,
             P: Point<X, Y>,
     {
