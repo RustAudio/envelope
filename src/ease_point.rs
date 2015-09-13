@@ -43,7 +43,7 @@ impl<X, Y> Point<X, Y> for EasePoint<X, Y>
         Y::Scalar: Float + Ease,
 {
     #[inline(always)]
-    fn x_to_scalar(&self, x: X) -> Y::Scalar {
+    fn x_to_scalar(x: X) -> Y::Scalar {
         NumCast::from(x).unwrap()
     }
     #[inline(always)]
@@ -52,9 +52,9 @@ impl<X, Y> Point<X, Y> for EasePoint<X, Y>
     fn y(&self) -> Y { self.y }
     #[inline(always)]
     fn interpolate(x: X, start: &EasePoint<X, Y>, end: &EasePoint<X, Y>) -> Y {
-        let x: Y::Scalar = start.x_to_scalar(x);
-        let start_x: Y::Scalar = start.x_to_scalar(start.x());
-        let end_x: Y::Scalar = start.x_to_scalar(end.x());
+        let x: Y::Scalar = EasePoint::<X, Y>::x_to_scalar(x);
+        let start_x: Y::Scalar = EasePoint::<X, Y>::x_to_scalar(start.x());
+        let end_x: Y::Scalar = EasePoint::<X, Y>::x_to_scalar(end.x());
         let scalar = (x - start_x) / (end_x - start_x);
         let eased_scalar = match start.maybe_ease_fn {
             Some(f) => Ease::calc(scalar, f),

@@ -1,8 +1,8 @@
 [package]
 
 name = "envelope"
-description = "An interpolatable Envelope type along with a generic 2D Point, useful for controlling parameters over time."
-version = "0.4.1"
+description = "An interpolatable Envelope trait along with a generic 2D Point trait. Useful for controlling parameters over time."
+version = "0.5.1"
 authors = ["mitchmindtree <mitchell.nordine@gmail.com>"]
 readme = "README.md"
 keywords = ["interpolate", "dsp", "audio", "time", "2D"]
