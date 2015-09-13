@@ -42,7 +42,7 @@ impl<X, Y> Point<X, Y> for BezierPoint<X, Y>
         Y::Scalar: Float,
 {
     #[inline(always)]
-    fn x_to_scalar(&self, x: X) -> Y::Scalar {
+    fn x_to_scalar(x: X) -> Y::Scalar {
         NumCast::from(x).unwrap()
     }
     #[inline(always)]

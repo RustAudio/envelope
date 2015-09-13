@@ -1,7 +1,9 @@
 
-extern crate interpolation;
+extern crate interpolation as interpolation_lib;
 extern crate num;
 extern crate rustc_serialize;
+
+pub use interpolation_lib as interpolation;
 
 pub use bezier_point::BezierPoint;
 pub use ease_point::EasePoint;
