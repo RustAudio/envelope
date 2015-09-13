@@ -2,7 +2,6 @@
 use interpolation::Spatial;
 use num::Float;
 use point::Point;
-use std::iter::IntoIterator;
 
 
 /// Types representable as an Envelope.
