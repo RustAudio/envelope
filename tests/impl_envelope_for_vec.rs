@@ -4,6 +4,7 @@ extern crate envelope;
 
 use envelope::Envelope;
 use envelope::interpolation::Spatial;
+use std::iter::{FromIterator, once};
 
 
 /// Implement a Point and Envelope for the given X and Y types.
@@ -20,10 +21,6 @@ macro_rules! impl_point_and_envelope {
             fn y(&self) -> $Y { self.y }
         }
         impl Envelope<Point> for Vec<Point> {
-            fn from_points<I: IntoIterator<Item=Point>>(points: I) -> Self {
-                use std::iter::FromIterator;
-                Vec::from_iter(points)
-            }
             fn points(&self) -> &[Point] { self }
         }
     };
@@ -45,7 +42,7 @@ macro_rules! test_x_y_float {
             }
 
             // Values exactly on points.
-            let points_a = Vec::from_points((0..1_000).map(|i| {
+            let points_a = Vec::from_iter((0..1_000).map(|i| {
                 let x = i as $X;
                 let value = sine(x);
                 Point { x: x, y: value } 
@@ -61,10 +58,9 @@ macro_rules! test_x_y_float {
             }
 
             // Interpolation betwen points.
-            let points_b = Vec::from_points(vec![
-                Point { x: 0 as $X, y: 0.0 as $Y },
-                Point { x: 10 as $X, y: 1.0 as $Y },
-            ]);
+            let points_b: Vec<Point> = once(Point { x: 0 as $X, y: 0.0 as $Y })
+                .chain(once(Point { x: 10 as $X, y: 1.0 as $Y }))
+                .collect();
             assert_eq!(points_b.y(0 as $X).expect("Cannot interpolate 0"), 0.0 as $Y);
             assert_eq!(points_b.y(1 as $X).expect("Cannot interpolate 1"), 0.1 as $Y);
             assert_eq!(points_b.y(2 as $X).expect("Cannot interpolate 2"), 0.2 as $Y);
@@ -140,7 +136,7 @@ macro_rules! test_x_y_int {
             }
 
             // Values exactly on points.
-            let points_a = Vec::from_points((0..1_000).map(|i| {
+            let points_a = Vec::from_iter((0..1_000).map(|i| {
                 let x = i as $X;
                 let value = sine(x);
                 Point { x: x, y: value } 
@@ -156,10 +152,9 @@ macro_rules! test_x_y_int {
             }
 
             // Interpolation betwen points.
-            let points_b = Vec::from_points(vec![
-                Point { x: 0 as $X, y: 0 as $Y },
-                Point { x: 10 as $X, y: 100 as $Y },
-            ]);
+            let points_b: Vec<Point> = once(Point { x: 0 as $X, y: 0 as $Y })
+                .chain(once(Point { x: 10 as $X, y: 100 as $Y }))
+                .collect();
             assert_eq!(points_b.y(0 as $X).expect("Cannot interpolate 0"), 0 as $Y);
             assert_eq!(points_b.y(1 as $X).expect("Cannot interpolate 1"), 10 as $Y);
             assert_eq!(points_b.y(2 as $X).expect("Cannot interpolate 2"), 20 as $Y);

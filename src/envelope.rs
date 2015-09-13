@@ -8,9 +8,6 @@ use std::iter::IntoIterator;
 /// Types representable as an Envelope.
 pub trait Envelope<P> {
 
-    /// Construct an `Envelope` from an iterator producing `Point`s.
-    fn from_points<I: IntoIterator<Item=P>>(points: I) -> Self;
-
     /// A reference to the `Envelope`'s slice of `Point`s.
     fn points(&self) -> &[P];
 
