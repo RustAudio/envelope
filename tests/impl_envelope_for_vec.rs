@@ -20,8 +20,9 @@ macro_rules! impl_point_and_envelope {
             fn x(&self) -> $X { self.x }
             fn y(&self) -> $Y { self.y }
         }
-        impl Envelope<Point> for Vec<Point> {
-            fn points(&self) -> &[Point] { self }
+        impl<'a> Envelope<'a, Point> for Vec<Point> {
+            type Points = ::std::slice::Iter<'a, Point>;
+            fn points(&'a self) -> Self::Points { self.iter() }
         }
     };
 }
