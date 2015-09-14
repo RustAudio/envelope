@@ -34,7 +34,8 @@ pub trait Point<X, Y>: Copy + Clone where
         let start_x = Self::x_to_scalar(start.x());
         let end_x = Self::x_to_scalar(end.x());
         let scalar = (x - start_x) / (end_x - start_x);
-        end.y().sub(&start.y()).scale(&scalar)
+        let interpolated_difference = end.y().sub(&start.y()).scale(&scalar);
+        start.y().add(&interpolated_difference)
     }
 }
 
