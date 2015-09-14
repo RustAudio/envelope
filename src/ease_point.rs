@@ -1,4 +1,5 @@
 
+use interpolate;
 use interpolation::{Ease, EaseFunction, Spatial};
 use point::Point;
 use num::{Float, NumCast};
@@ -51,16 +52,14 @@ impl<X, Y> Point<X, Y> for EasePoint<X, Y>
     #[inline(always)]
     fn y(&self) -> Y { self.y }
     #[inline(always)]
-    fn interpolate(x: X, start: &EasePoint<X, Y>, end: &EasePoint<X, Y>) -> Y {
-        let x: Y::Scalar = EasePoint::<X, Y>::x_to_scalar(x);
-        let start_x: Y::Scalar = EasePoint::<X, Y>::x_to_scalar(start.x());
-        let end_x: Y::Scalar = EasePoint::<X, Y>::x_to_scalar(end.x());
-        let scalar = (x - start_x) / (end_x - start_x);
-        let eased_scalar = match start.maybe_ease_fn {
-            Some(f) => Ease::calc(scalar, f),
-            None => scalar,
-        };
-        end.y().sub(&start.y()).scale(&eased_scalar)
+    fn interpolate(x: X, start: &Self, end: &Self) -> Y where
+        Y: PartialEq,
+        X: PartialEq,
+    {
+        match start.maybe_ease_fn {
+            Some(ease_fn) => interpolate::ease(x, start, end, ease_fn),
+            None => interpolate::linear(x, start, end),
+        }
     }
 }
 

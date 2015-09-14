@@ -1,4 +1,5 @@
 
+use interpolate;
 use interpolation::Spatial;
 use num::Float;
 
@@ -20,22 +21,7 @@ pub trait Point<X, Y>: Copy + Clone where
         Y: PartialEq,
         X: PartialEq,
     {
-        // No need to interpolate if:
-        // - both y values are the same
-        // - start_x and x are the same
-        // - end_x and x are the same
-        if start.y() == end.y() || start.x() == x {
-            return start.y();
-        } else if end.x() == x {
-            return end.y();
-        }
-
-        let x = Self::x_to_scalar(x);
-        let start_x = Self::x_to_scalar(start.x());
-        let end_x = Self::x_to_scalar(end.x());
-        let scalar = (x - start_x) / (end_x - start_x);
-        let interpolated_difference = end.y().sub(&start.y()).scale(&scalar);
-        start.y().add(&interpolated_difference)
+        interpolate::linear(x, start, end)
     }
 }
 

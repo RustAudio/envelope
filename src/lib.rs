@@ -13,5 +13,6 @@ pub use point::Point;
 mod bezier_point;
 mod ease_point;
 mod envelope;
+pub mod interpolate;
 mod point;
 
