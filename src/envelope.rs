@@ -5,7 +5,7 @@ use point::Point;
 
 
 /// Types representable as an Envelope.
-pub trait Envelope<'a, P>: Sized {
+pub trait Envelope<'a, P: 'a>: Sized {
     /// An iterator yielding references to `P`s.
     type Points: Iterator<Item=&'a P> + ExactSizeIterator + DoubleEndedIterator + Clone + 'a;
 
