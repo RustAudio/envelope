@@ -146,6 +146,36 @@ pub trait Envelope<'a, P: 'a>: Sized {
         self.point_idx_on_or_after(x).and_then(|i| self.points().nth(i).map(|p| (i, p)))
     }
 
+    /// The points that lie on either side of the given `x`.
+    ///
+    /// FIXME: This could be much faster.
+    #[inline]
+    fn surrounding_points<X, Y>(&'a self, x: X) -> (Option<&'a P>, Option<&'a P>) where
+        P: Point<X, Y> + 'a,
+        X: Copy + PartialOrd + 'a,
+        Y: Spatial + 'a,
+        Y::Scalar: Float + 'a,
+    {
+        (self.point_on_or_before(x), self.point_after(x))
+    }
+
+    /// A reference point that is closest to the given `x` if there is one.
+    ///
+    /// FIXME: This could be much faster.
+    #[inline]
+    fn closest_point<X, Y>(&'a self, x: X) -> Option<&'a P> where
+        P: Point<X, Y> + 'a,
+        X: Copy + PartialOrd + ::std::ops::Sub<Output=X> + 'a,
+        Y: Spatial + 'a,
+        Y::Scalar: Float + 'a,
+    {
+        match self.surrounding_points(x) {
+            (Some(before), Some(after)) =>
+                if x - before.x() < after.x() - x { Some(before) } else { Some(after) },
+            (Some(point), None) | (None, Some(point)) => Some(point),
+            (None, None) => None,
+        }
+    }
 
     /// Return `y` for the given `x`.
     ///
