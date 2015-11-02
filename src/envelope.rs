@@ -17,8 +17,6 @@ pub trait Envelope<'a, P: 'a>: Sized {
     fn point_idx_before<X, Y>(&'a self, x: X) -> Option<usize> where
         P: Point<X, Y> + 'a,
         X: PartialOrd + 'a,
-        Y: Spatial + 'a,
-        Y::Scalar: Float + 'a,
     {
         point_idx_before(self, x)
     }
@@ -28,8 +26,6 @@ pub trait Envelope<'a, P: 'a>: Sized {
     fn point_idx_on_or_before<X, Y>(&'a self, x: X) -> Option<usize> where
         P: Point<X, Y> + 'a,
         X: PartialOrd + 'a,
-        Y: Spatial + 'a,
-        Y::Scalar: Float + 'a,
     {
         point_idx_on_or_before(self, x)
     }
@@ -39,8 +35,6 @@ pub trait Envelope<'a, P: 'a>: Sized {
     fn point_idx_after<X, Y>(&'a self, x: X) -> Option<usize> where
         P: Point<X, Y> + 'a,
         X: PartialOrd + 'a,
-        Y: Spatial + 'a,
-        Y::Scalar: Float + 'a,
     {
         point_idx_after(self, x)
     }
@@ -50,8 +44,6 @@ pub trait Envelope<'a, P: 'a>: Sized {
     fn point_idx_on_or_after<X, Y>(&'a self, x: X) -> Option<usize> where
         P: Point<X, Y> + 'a,
         X: PartialOrd + 'a,
-        Y: Spatial + 'a,
-        Y::Scalar: Float + 'a,
     {
         point_idx_on_or_after(self, x)
     }
@@ -61,8 +53,6 @@ pub trait Envelope<'a, P: 'a>: Sized {
     fn point_before<X, Y>(&'a self, x: X) -> Option<&'a P> where
         P: Point<X, Y> + 'a,
         X: PartialOrd + 'a,
-        Y: Spatial + 'a,
-        Y::Scalar: Float + 'a,
     {
         self.point_idx_before(x).and_then(|i| self.points().nth(i))
     }
@@ -72,8 +62,6 @@ pub trait Envelope<'a, P: 'a>: Sized {
     fn point_on_or_before<X, Y>(&'a self, x: X) -> Option<&'a P> where
         P: Point<X, Y> + 'a,
         X: PartialOrd + 'a,
-        Y: Spatial + 'a,
-        Y::Scalar: Float + 'a,
     {
         self.point_idx_on_or_before(x).and_then(|i| self.points().nth(i))
     }
@@ -83,8 +71,6 @@ pub trait Envelope<'a, P: 'a>: Sized {
     fn point_before_with_idx<X, Y>(&'a self, x: X) -> Option<(usize, &'a P)> where
         P: Point<X, Y> + 'a,
         X: PartialOrd + 'a,
-        Y: Spatial + 'a,
-        Y::Scalar: Float + 'a,
     {
         self.point_idx_before(x).and_then(|i| self.points().nth(i).map(|p| (i, p)))
     }
@@ -95,8 +81,6 @@ pub trait Envelope<'a, P: 'a>: Sized {
     fn point_on_or_before_with_idx<X, Y>(&'a self, x: X) -> Option<(usize, &'a P)> where
         P: Point<X, Y> + 'a,
         X: PartialOrd + 'a,
-        Y: Spatial + 'a,
-        Y::Scalar: Float + 'a,
     {
         self.point_idx_on_or_before(x).and_then(|i| self.points().nth(i).map(|p| (i, p)))
     }
@@ -106,8 +90,6 @@ pub trait Envelope<'a, P: 'a>: Sized {
     fn point_after<X, Y>(&'a self, x: X) -> Option<&'a P> where
         P: Point<X, Y> + 'a,
         X: PartialOrd + 'a,
-        Y: Spatial + 'a,
-        Y::Scalar: Float + 'a,
     {
         self.point_idx_after(x).and_then(|i| self.points().nth(i))
     }
@@ -117,8 +99,6 @@ pub trait Envelope<'a, P: 'a>: Sized {
     fn point_on_or_after<X, Y>(&'a self, x: X) -> Option<&'a P> where
         P: Point<X, Y> + 'a,
         X: PartialOrd + 'a,
-        Y: Spatial + 'a,
-        Y::Scalar: Float + 'a,
     {
         self.point_idx_on_or_after(x).and_then(|i| self.points().nth(i))
     }
@@ -128,8 +108,6 @@ pub trait Envelope<'a, P: 'a>: Sized {
     fn point_after_with_idx<X, Y>(&'a self, x: X) -> Option<(usize, &'a P)> where
         P: Point<X, Y> + 'a,
         X: PartialOrd + 'a,
-        Y: Spatial + 'a,
-        Y::Scalar: Float + 'a,
     {
         self.point_idx_after(x).and_then(|i| self.points().nth(i).map(|p| (i, p)))
     }
@@ -140,8 +118,6 @@ pub trait Envelope<'a, P: 'a>: Sized {
     fn point_on_or_after_with_idx<X, Y>(&'a self, x: X) -> Option<(usize, &'a P)> where
         P: Point<X, Y> + 'a,
         X: PartialOrd + 'a,
-        Y: Spatial + 'a,
-        Y::Scalar: Float + 'a,
     {
         self.point_idx_on_or_after(x).and_then(|i| self.points().nth(i).map(|p| (i, p)))
     }
@@ -151,8 +127,6 @@ pub trait Envelope<'a, P: 'a>: Sized {
     fn point_at<X, Y>(&'a self, x: X) -> Option<&'a P> where
         P: Point<X, Y> + 'a,
         X: PartialOrd + 'a,
-        Y: Spatial + 'a,
-        Y::Scalar: Float + 'a,
     {
         self.points().find(|p| p.x() == x)
     }
@@ -163,8 +137,6 @@ pub trait Envelope<'a, P: 'a>: Sized {
     fn point_at_with_idx<X, Y>(&'a self, x: X) -> Option<(usize, &'a P)> where
         P: Point<X, Y> + 'a,
         X: PartialOrd + 'a,
-        Y: Spatial + 'a,
-        Y::Scalar: Float + 'a,
     {
         self.points().enumerate().find(|&(_, p)| p.x() == x)
     }
@@ -176,8 +148,6 @@ pub trait Envelope<'a, P: 'a>: Sized {
     fn surrounding_points<X, Y>(&'a self, x: X) -> (Option<&'a P>, Option<&'a P>) where
         P: Point<X, Y> + 'a,
         X: Copy + PartialOrd + 'a,
-        Y: Spatial + 'a,
-        Y::Scalar: Float + 'a,
     {
         (self.point_on_or_before(x), self.point_after(x))
     }
@@ -189,8 +159,6 @@ pub trait Envelope<'a, P: 'a>: Sized {
     fn closest_point<X, Y>(&'a self, x: X) -> Option<&'a P> where
         P: Point<X, Y> + 'a,
         X: Copy + PartialOrd + ::std::ops::Sub<Output=X> + 'a,
-        Y: Spatial + 'a,
-        Y::Scalar: Float + 'a,
     {
         match self.surrounding_points(x) {
             (Some(before), Some(after)) =>
@@ -235,8 +203,6 @@ fn point_idx_before<'a, E, P, X, Y>(env: &'a E, x: X) -> Option<usize> where
     E: Envelope<'a, P>,
     P: Point<X, Y> + 'a,
     X: PartialOrd + 'a,
-    Y: Spatial + 'a,
-    Y::Scalar: Float + 'a,
 {
     env.points().enumerate()
         .take_while(|&(_, point)| point.x() < x )
@@ -250,8 +216,6 @@ fn point_idx_on_or_before<'a, E, P, X, Y>(env: &'a E, x: X) -> Option<usize> whe
     E: Envelope<'a, P>,
     P: Point<X, Y> + 'a,
     X: PartialOrd + 'a,
-    Y: Spatial + 'a,
-    Y::Scalar: Float + 'a,
 {
     env.points().enumerate()
         .take_while(|&(_, point)| point.x() <= x )
@@ -265,8 +229,6 @@ fn point_idx_after<'a, E, P, X, Y>(env: &'a E, x: X) -> Option<usize> where
     E: Envelope<'a, P>,
     P: Point<X, Y> + 'a,
     X: PartialOrd + 'a,
-    Y: Spatial + 'a,
-    Y::Scalar: Float + 'a,
 {
     env.points().enumerate().rev()
         .take_while(|&(_, point)| point.x() > x )
@@ -280,8 +242,6 @@ fn point_idx_on_or_after<'a, E, P, X, Y>(env: &'a E, x: X) -> Option<usize> wher
     E: Envelope<'a, P>,
     P: Point<X, Y> + 'a,
     X: PartialOrd + 'a,
-    Y: Spatial + 'a,
-    Y::Scalar: Float + 'a,
 {
     env.points().enumerate().rev()
         .take_while(|&(_, point)| point.x() >= x )
