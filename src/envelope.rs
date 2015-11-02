@@ -146,6 +146,29 @@ pub trait Envelope<'a, P: 'a>: Sized {
         self.point_idx_on_or_after(x).and_then(|i| self.points().nth(i).map(|p| (i, p)))
     }
 
+    /// A reference to the first point lying directly on the given `x` if there is one.
+    #[inline]
+    fn point_at<X, Y>(&'a self, x: X) -> Option<&'a P> where
+        P: Point<X, Y> + 'a,
+        X: PartialOrd + 'a,
+        Y: Spatial + 'a,
+        Y::Scalar: Float + 'a,
+    {
+        self.points().find(|p| p.x() == x)
+    }
+
+    /// A reference to the first point (along with it's index) lying directly on the given `x` if
+    /// there is one.
+    #[inline]
+    fn point_at_with_idx<X, Y>(&'a self, x: X) -> Option<(usize, &'a P)> where
+        P: Point<X, Y> + 'a,
+        X: PartialOrd + 'a,
+        Y: Spatial + 'a,
+        Y::Scalar: Float + 'a,
+    {
+        self.points().enumerate().find(|&(_, p)| p.x() == x)
+    }
+
     /// The points that lie on either side of the given `x`.
     ///
     /// FIXME: This could be much faster.
