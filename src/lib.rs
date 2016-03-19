@@ -1,7 +1,5 @@
-
 extern crate interpolation as interpolation_lib;
 extern crate num;
-extern crate rustc_serialize;
 
 pub use interpolation_lib as interpolation;
 
@@ -15,4 +13,3 @@ mod ease_point;
 mod envelope;
 pub mod interpolate;
 mod point;
-

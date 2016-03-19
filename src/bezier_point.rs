@@ -6,7 +6,7 @@ use point::Point;
 
 
 /// A type whose interpolation may involve some quadratic bezier curve.
-#[derive(Debug, Clone, Copy, RustcEncodable, RustcDecodable)]
+#[derive(Debug, Clone, Copy)]
 pub struct BezierPoint<X, Y> where
     X: Clone + Copy,
     Y: Spatial + Clone + Copy,

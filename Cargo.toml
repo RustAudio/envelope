@@ -1,5 +1,4 @@
 [package]
-
 name = "envelope"
 description = "An interpolatable Envelope trait along with a generic 2D Point trait. Useful for controlling parameters over time."
 version = "0.7.0"
@@ -10,8 +9,6 @@ license = "MIT"
 repository = "https://github.com/RustAudio/envelope.git"
 homepage = "https://github.com/RustAudio/envelope"
 
-
 [dependencies]
 interpolation = "0.1.0"
-num = "0.1.27"
-rustc-serialize = "0.3.16"
+num = "0.1.31"
