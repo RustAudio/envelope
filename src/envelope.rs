@@ -142,15 +142,19 @@ pub trait Envelope<'a>: Sized {
         y(self, x)
     }
 
-    // /// Sample the `Envelope`'s `y` value for every given `x` step starting from the first point's
-    // /// `X` value.
-    // ///
-    // /// The envelope will yield `Some(Y)` until the first step is out of range of all points on the
-    // /// y axis.
-    // fn step<X, Y>(&'a self, step: X) -> Step<Self, X, Y>
-    //     where 
-    // {
-    // }
+    /// Sample the `Envelope`'s `y` value for every given `x` step starting from the first point's
+    /// `X` value.
+    ///
+    /// The envelope will yield `Some(Y)` until the first step is out of range of all points on the
+    /// y axis.
+    #[inline]
+    fn step(&'a self, start: Self::X, step: Self::X) -> Step<'a, Self> {
+        Step {
+            env: self,
+            step: step,
+            next: start,
+        }
+    }
 
     // /// An iterator yielding the X for each point at which the envelope intersects the given `y`.
     // ///
@@ -163,9 +167,33 @@ pub trait Envelope<'a>: Sized {
 }
 
 
-// pub struct Step<E, X, Y>
-// {
-// }
+/// An iterator that interpolates the envelope `E` one `step` and yields the result.
+///
+/// Returns `None` the first time `next` falls out of range of all points in `env`.
+#[derive(Clone)]
+pub struct Step<'a, E>
+    where E: Envelope<'a> + 'a,
+{
+    env: &'a E,
+    step: E::X,
+    next: E::X,
+}
+
+impl<'a, E> Iterator for Step<'a, E>
+    where E: Envelope<'a>,
+          <E as Envelope<'a>>::X: std::ops::Add<Output=<E as Envelope<'a>>::X>,
+{
+    type Item = E::Y;
+    #[inline]
+    fn next(&mut self) -> Option<Self::Item> {
+        // This method could be optimised by taking advantage of the fact that we don't need to
+        // check the "left" bounds after the first check, as every step increments to the "right".
+        self.env.y(self.next.clone()).map(|y| {
+            self.next = self.next.clone() + self.step.clone();
+            y
+        })
+    }
+}
 
 
 
