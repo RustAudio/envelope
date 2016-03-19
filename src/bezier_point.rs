@@ -35,12 +35,14 @@ impl<X, Y> BezierPoint<X, Y> where
 }
 
 
-impl<X, Y> Point<X, Y> for BezierPoint<X, Y>
-    where
-        X: NumCast + Clone + Copy,
-        Y: NumCast + Spatial + Clone + Copy,
-        Y::Scalar: Float,
+impl<X, Y> Point for BezierPoint<X, Y>
+    where X: PartialEq + NumCast + Clone + Copy,
+          Y: PartialEq + NumCast + Spatial + Clone + Copy,
+          Y::Scalar: Float,
 {
+    type Scalar = <Y as Spatial>::Scalar;
+    type X = X;
+    type Y = Y;
     #[inline(always)]
     fn x_to_scalar(x: X) -> Y::Scalar {
         NumCast::from(x).unwrap()

@@ -1,143 +1,108 @@
 
+use interpolate::Scalar;
 use interpolation::Spatial;
-use num::Float;
 use point::Point;
+use std;
 
 
-/// Types representable as an Envelope.
-pub trait Envelope<'a, P: 'a>: Sized {
-    /// An iterator yielding references to `P`s.
-    type Points: Iterator<Item=&'a P> + ExactSizeIterator + DoubleEndedIterator + Clone + 'a;
+/// Types that are representable as an Envelope.
+pub trait Envelope<'a>: Sized {
+    type Scalar: Scalar;
+    type X: PartialEq + PartialOrd + Clone;
+    type Y: PartialEq + Spatial<Scalar=Self::Scalar>;
+    /// The `Point` type which may be referenced and interpolated by the `Envelope`.
+    type Point: Point<Scalar=Self::Scalar, X=Self::X, Y=Self::Y> + 'a;
+    /// An iterator yielding references to `Self::Point`s.
+    type Points:
+        Iterator<Item=&'a Self::Point> + ExactSizeIterator + DoubleEndedIterator + Clone + 'a;
 
     /// An iterator yielding the `Point`s of the Envelope.
     fn points(&'a self) -> Self::Points;
 
     /// The index of the `Point` that comes directly before the given `x`.
     #[inline]
-    fn point_idx_before<X, Y>(&'a self, x: X) -> Option<usize> where
-        P: Point<X, Y> + 'a,
-        X: PartialOrd + 'a,
-    {
+    fn point_idx_before(&'a self, x: Self::X) -> Option<usize> {
         point_idx_before(self, x)
     }
 
     /// The index of the `Point` that either lands on or comes directly before the given `x`.
     #[inline]
-    fn point_idx_on_or_before<X, Y>(&'a self, x: X) -> Option<usize> where
-        P: Point<X, Y> + 'a,
-        X: PartialOrd + 'a,
-    {
+    fn point_idx_on_or_before(&'a self, x: Self::X) -> Option<usize> {
         point_idx_on_or_before(self, x)
     }
 
     /// The index of the `Point` that comes directly after the given `x`.
     #[inline]
-    fn point_idx_after<X, Y>(&'a self, x: X) -> Option<usize> where
-        P: Point<X, Y> + 'a,
-        X: PartialOrd + 'a,
-    {
+    fn point_idx_after(&'a self, x: Self::X) -> Option<usize> {
         point_idx_after(self, x)
     }
 
     /// The index of the `Point` that comes directly after the given `x`.
     #[inline]
-    fn point_idx_on_or_after<X, Y>(&'a self, x: X) -> Option<usize> where
-        P: Point<X, Y> + 'a,
-        X: PartialOrd + 'a,
-    {
+    fn point_idx_on_or_after(&'a self, x: Self::X) -> Option<usize> {
         point_idx_on_or_after(self, x)
     }
 
     /// A reference to the first point that comes before the given `x`.
     #[inline]
-    fn point_before<X, Y>(&'a self, x: X) -> Option<&'a P> where
-        P: Point<X, Y> + 'a,
-        X: PartialOrd + 'a,
-    {
+    fn point_before(&'a self, x: Self::X) -> Option<&'a Self::Point> {
         self.point_idx_before(x).and_then(|i| self.points().nth(i))
     }
 
     /// A reference to the first point that is equal to or comes before the given `x`.
     #[inline]
-    fn point_on_or_before<X, Y>(&'a self, x: X) -> Option<&'a P> where
-        P: Point<X, Y> + 'a,
-        X: PartialOrd + 'a,
-    {
+    fn point_on_or_before(&'a self, x: Self::X) -> Option<&'a Self::Point> {
         self.point_idx_on_or_before(x).and_then(|i| self.points().nth(i))
     }
 
     /// A reference to the first point that comes before the given `x` along with its index.
     #[inline]
-    fn point_before_with_idx<X, Y>(&'a self, x: X) -> Option<(usize, &'a P)> where
-        P: Point<X, Y> + 'a,
-        X: PartialOrd + 'a,
-    {
+    fn point_before_with_idx(&'a self, x: Self::X) -> Option<(usize, &'a Self::Point)> {
         self.point_idx_before(x).and_then(|i| self.points().nth(i).map(|p| (i, p)))
     }
 
     /// A reference to the first point that is equal to or comes before the given `x` along with
     /// its index.
     #[inline]
-    fn point_on_or_before_with_idx<X, Y>(&'a self, x: X) -> Option<(usize, &'a P)> where
-        P: Point<X, Y> + 'a,
-        X: PartialOrd + 'a,
-    {
+    fn point_on_or_before_with_idx(&'a self, x: Self::X) -> Option<(usize, &'a Self::Point)> {
         self.point_idx_on_or_before(x).and_then(|i| self.points().nth(i).map(|p| (i, p)))
     }
 
     /// A reference to the first point that comes after the given `x`.
     #[inline]
-    fn point_after<X, Y>(&'a self, x: X) -> Option<&'a P> where
-        P: Point<X, Y> + 'a,
-        X: PartialOrd + 'a,
-    {
+    fn point_after(&'a self, x: Self::X) -> Option<&'a Self::Point> {
         self.point_idx_after(x).and_then(|i| self.points().nth(i))
     }
 
     /// A reference to the first point that is equal to or comes after the given `x`.
     #[inline]
-    fn point_on_or_after<X, Y>(&'a self, x: X) -> Option<&'a P> where
-        P: Point<X, Y> + 'a,
-        X: PartialOrd + 'a,
-    {
+    fn point_on_or_after(&'a self, x: Self::X) -> Option<&'a Self::Point> {
         self.point_idx_on_or_after(x).and_then(|i| self.points().nth(i))
     }
 
     /// A reference to the first point that comes after the given `x` along with its index.
     #[inline]
-    fn point_after_with_idx<X, Y>(&'a self, x: X) -> Option<(usize, &'a P)> where
-        P: Point<X, Y> + 'a,
-        X: PartialOrd + 'a,
-    {
+    fn point_after_with_idx(&'a self, x: Self::X) -> Option<(usize, &'a Self::Point)> {
         self.point_idx_after(x).and_then(|i| self.points().nth(i).map(|p| (i, p)))
     }
 
     /// A reference to the first point that is equal to or comes after the given `x` along with
     /// its index.
     #[inline]
-    fn point_on_or_after_with_idx<X, Y>(&'a self, x: X) -> Option<(usize, &'a P)> where
-        P: Point<X, Y> + 'a,
-        X: PartialOrd + 'a,
-    {
+    fn point_on_or_after_with_idx(&'a self, x: Self::X) -> Option<(usize, &'a Self::Point)> {
         self.point_idx_on_or_after(x).and_then(|i| self.points().nth(i).map(|p| (i, p)))
     }
 
     /// A reference to the first point lying directly on the given `x` if there is one.
     #[inline]
-    fn point_at<X, Y>(&'a self, x: X) -> Option<&'a P> where
-        P: Point<X, Y> + 'a,
-        X: PartialOrd + 'a,
-    {
+    fn point_at(&'a self, x: Self::X) -> Option<&'a Self::Point> {
         self.points().find(|p| p.x() == x)
     }
 
     /// A reference to the first point (along with it's index) lying directly on the given `x` if
     /// there is one.
     #[inline]
-    fn point_at_with_idx<X, Y>(&'a self, x: X) -> Option<(usize, &'a P)> where
-        P: Point<X, Y> + 'a,
-        X: PartialOrd + 'a,
-    {
+    fn point_at_with_idx(&'a self, x: Self::X) -> Option<(usize, &'a Self::Point)> {
         self.points().enumerate().find(|&(_, p)| p.x() == x)
     }
 
@@ -145,24 +110,22 @@ pub trait Envelope<'a, P: 'a>: Sized {
     ///
     /// FIXME: This could be much faster.
     #[inline]
-    fn surrounding_points<X, Y>(&'a self, x: X) -> (Option<&'a P>, Option<&'a P>) where
-        P: Point<X, Y> + 'a,
-        X: Copy + PartialOrd + 'a,
+    fn surrounding_points(&'a self, x: Self::X)
+        -> (Option<&'a Self::Point>, Option<&'a Self::Point>)
     {
-        (self.point_on_or_before(x), self.point_after(x))
+        (self.point_on_or_before(x.clone()), self.point_after(x))
     }
 
     /// A reference point that is closest to the given `x` if there is one.
     ///
     /// FIXME: This could be much faster.
     #[inline]
-    fn closest_point<X, Y>(&'a self, x: X) -> Option<&'a P> where
-        P: Point<X, Y> + 'a,
-        X: Copy + PartialOrd + ::std::ops::Sub<Output=X> + 'a,
+    fn closest_point(&'a self, x: Self::X) -> Option<&'a Self::Point>
+        where <Self as Envelope<'a>>::X: std::ops::Sub<Output=<Self as Envelope<'a>>::X>,
     {
-        match self.surrounding_points(x) {
+        match self.surrounding_points(x.clone()) {
             (Some(before), Some(after)) =>
-                if x - before.x() < after.x() - x { Some(before) } else { Some(after) },
+                if x.clone() - before.x() < after.x() - x { Some(before) } else { Some(after) },
             (Some(point), None) | (None, Some(point)) => Some(point),
             (None, None) => None,
         }
@@ -175,15 +138,19 @@ pub trait Envelope<'a, P: 'a>: Sized {
     ///
     /// Note: It is assumed that the points owned by the Envelope are sorted by `x`.
     #[inline]
-    fn y<X, Y>(&'a self, x: X) -> Option<Y>
-        where
-            X: PartialOrd + 'a,
-            Y: Spatial + PartialEq + 'a,
-            Y::Scalar: Float + 'a,
-            P: Point<X, Y> + 'a,
-    {
+    fn y(&'a self, x: Self::X) -> Option<Self::Y> {
         y(self, x)
     }
+
+    // /// Sample the `Envelope`'s `y` value for every given `x` step starting from the first point's
+    // /// `X` value.
+    // ///
+    // /// The envelope will yield `Some(Y)` until the first step is out of range of all points on the
+    // /// y axis.
+    // fn step<X, Y>(&'a self, step: X) -> Step<Self, X, Y>
+    //     where 
+    // {
+    // }
 
     // /// An iterator yielding the X for each point at which the envelope intersects the given `y`.
     // ///
@@ -196,13 +163,15 @@ pub trait Envelope<'a, P: 'a>: Sized {
 }
 
 
+// pub struct Step<E, X, Y>
+// {
+// }
+
 
 
 #[inline]
-fn point_idx_before<'a, E, P, X, Y>(env: &'a E, x: X) -> Option<usize> where
-    E: Envelope<'a, P>,
-    P: Point<X, Y> + 'a,
-    X: PartialOrd + 'a,
+fn point_idx_before<'a, E>(env: &'a E, x: E::X) -> Option<usize>
+    where E: Envelope<'a>,
 {
     env.points().enumerate()
         .take_while(|&(_, point)| point.x() < x )
@@ -212,10 +181,8 @@ fn point_idx_before<'a, E, P, X, Y>(env: &'a E, x: X) -> Option<usize> where
 
 
 #[inline]
-fn point_idx_on_or_before<'a, E, P, X, Y>(env: &'a E, x: X) -> Option<usize> where
-    E: Envelope<'a, P>,
-    P: Point<X, Y> + 'a,
-    X: PartialOrd + 'a,
+fn point_idx_on_or_before<'a, E>(env: &'a E, x: E::X) -> Option<usize>
+    where E: Envelope<'a>,
 {
     env.points().enumerate()
         .take_while(|&(_, point)| point.x() <= x )
@@ -225,10 +192,8 @@ fn point_idx_on_or_before<'a, E, P, X, Y>(env: &'a E, x: X) -> Option<usize> whe
 
 
 #[inline]
-fn point_idx_after<'a, E, P, X, Y>(env: &'a E, x: X) -> Option<usize> where
-    E: Envelope<'a, P>,
-    P: Point<X, Y> + 'a,
-    X: PartialOrd + 'a,
+fn point_idx_after<'a, E>(env: &'a E, x: E::X) -> Option<usize>
+    where E: Envelope<'a>,
 {
     env.points().enumerate().rev()
         .take_while(|&(_, point)| point.x() > x )
@@ -238,10 +203,8 @@ fn point_idx_after<'a, E, P, X, Y>(env: &'a E, x: X) -> Option<usize> where
 
 
 #[inline]
-fn point_idx_on_or_after<'a, E, P, X, Y>(env: &'a E, x: X) -> Option<usize> where
-    E: Envelope<'a, P>,
-    P: Point<X, Y> + 'a,
-    X: PartialOrd + 'a,
+fn point_idx_on_or_after<'a, E>(env: &'a E, x: E::X) -> Option<usize>
+    where E: Envelope<'a>,
 {
     env.points().enumerate().rev()
         .take_while(|&(_, point)| point.x() >= x )
@@ -251,12 +214,9 @@ fn point_idx_on_or_after<'a, E, P, X, Y>(env: &'a E, x: X) -> Option<usize> wher
 
 
 #[inline]
-fn y<'a, E, P, X, Y>(env: &'a E, x: X) -> Option<Y> where
-    E: Envelope<'a, P>,
-    P: Point<X, Y> + 'a,
-    X: PartialOrd + 'a,
-    Y: Spatial + PartialEq + 'a,
-    Y::Scalar: Float + 'a,
+fn y<'a, E>(env: &'a E, x: E::X) -> Option<E::Y>
+    where E: Envelope<'a>,
+          E::Y: Spatial + PartialEq + 'a,
 {
 
     let mut points: E::Points = env.points();
@@ -267,7 +227,7 @@ fn y<'a, E, P, X, Y>(env: &'a E, x: X) -> Option<Y> where
         // However if we only have one point...
         if len == 1 {
             // And that point happens to be exactly equal to the given X.
-            let only_point: &P = points.clone().next().unwrap();
+            let only_point: &E::Point = points.clone().next().unwrap();
             if only_point.x() == x {
                 // Return the Y at that given X.
                 return Some(only_point.y());
@@ -278,8 +238,8 @@ fn y<'a, E, P, X, Y>(env: &'a E, x: X) -> Option<Y> where
 
     // If the given `x` is less than our first point's `X` or greater than our last point's
     // `X`, we cannot interpolate the envelope and thus must return `None`.
-    let first_point: &P = points.clone().next().unwrap();
-    let last_point: &P = points.clone().last().unwrap();
+    let first_point: &E::Point = points.clone().next().unwrap();
+    let last_point: &E::Point = points.clone().last().unwrap();
     if x < first_point.x() || x > last_point.x() {
         return None;
     }
