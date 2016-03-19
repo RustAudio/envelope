@@ -5,7 +5,7 @@ pub use interpolation_lib as interpolation;
 
 pub use bezier_point::BezierPoint;
 pub use ease_point::EasePoint;
-pub use envelope::Envelope;
+pub use envelope::{Envelope, Step};
 pub use point::Point;
 
 mod bezier_point;

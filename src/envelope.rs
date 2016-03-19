@@ -179,6 +179,15 @@ pub struct Step<'a, E>
     next: E::X,
 }
 
+impl<'a, E> Step<'a, E>
+    where E: Envelope<'a>,
+{
+    /// This is useful when the step size must change between steps.
+    pub fn set_step(&mut self, step: E::X) {
+        self.step = step;
+    }
+}
+
 impl<'a, E> Iterator for Step<'a, E>
     where E: Envelope<'a>,
           <E as Envelope<'a>>::X: std::ops::Add<Output=<E as Envelope<'a>>::X>,
