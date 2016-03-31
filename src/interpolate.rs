@@ -44,6 +44,7 @@ impl<T> Scalar for T
 pub fn linear<P>(x: P::X, start: &P, end: &P) -> P::Y
     where P: Point,
           P::X: Clone,
+          <P::Y as Spatial>::Scalar: Scalar,
 {
     maybe_exact_point(&x, start, end).unwrap_or_else(|| {
         let x = P::x_to_scalar(x.clone());
@@ -117,4 +118,3 @@ pub fn bezier<P>(x: P::X, start: &P, end: &P, curve: <P::Y as Spatial>::Scalar) 
         start.y().add(&y)
     })
 }
-

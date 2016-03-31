@@ -39,7 +39,6 @@ impl<X, Y> Point for EasePoint<X, Y>
           Y: PartialEq + Spatial + Clone + Copy,
           Y::Scalar: Float + Ease,
 {
-    type Scalar = <Y as Spatial>::Scalar;
     type X = X;
     type Y = Y;
 

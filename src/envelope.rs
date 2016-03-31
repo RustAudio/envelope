@@ -7,14 +7,16 @@ use std;
 
 /// Types that are representable as an Envelope.
 pub trait Envelope<'a>: Sized {
-    type Scalar: Scalar;
     type X: PartialEq + PartialOrd + Clone;
-    type Y: PartialEq + Spatial<Scalar=Self::Scalar>;
+    type Y: PartialEq + Spatial;
     /// The `Point` type which may be referenced and interpolated by the `Envelope`.
-    type Point: Point<Scalar=Self::Scalar, X=Self::X, Y=Self::Y> + 'a;
+    type Point: Point<X=Self::X, Y=Self::Y> + 'a;
     /// An iterator yielding references to `Self::Point`s.
-    type Points:
-        Iterator<Item=&'a Self::Point> + ExactSizeIterator + DoubleEndedIterator + Clone + 'a;
+    type Points: Iterator<Item=&'a Self::Point>
+        + ExactSizeIterator
+        + DoubleEndedIterator
+        + Clone
+        + 'a;
 
     /// An iterator yielding the `Point`s of the Envelope.
     fn points(&'a self) -> Self::Points;
@@ -138,7 +140,9 @@ pub trait Envelope<'a>: Sized {
     ///
     /// Note: It is assumed that the points owned by the Envelope are sorted by `x`.
     #[inline]
-    fn y(&'a self, x: Self::X) -> Option<Self::Y> {
+    fn y(&'a self, x: Self::X) -> Option<Self::Y>
+        where <Self::Y as Spatial>::Scalar: Scalar,
+    {
         y(self, x)
     }
 
@@ -222,7 +226,7 @@ impl<'a, E> Steps<'a, E>
     /// Yields the next step along with its position along the step.
     #[inline]
     pub fn next_xy(&mut self) -> Option<(E::X, E::Y)>
-        where <E as Envelope<'a>>::X: std::ops::Add<Output=<E as Envelope<'a>>::X>,
+        where Self: Iterator<Item=E::Y>,
     {
         let x = self.next_x.clone();
         self.next().map(|y| (x, y))
@@ -232,6 +236,7 @@ impl<'a, E> Steps<'a, E>
 impl<'a, E> Iterator for Steps<'a, E>
     where E: Envelope<'a>,
           <E as Envelope<'a>>::X: std::ops::Add<Output=<E as Envelope<'a>>::X>,
+          <<E as Envelope<'a>>::Y as Spatial>::Scalar: Scalar,
 {
     type Item = E::Y;
     #[inline]
@@ -312,6 +317,7 @@ fn point_idx_on_or_after<'a, E>(env: &'a E, x: E::X) -> Option<usize>
 fn y<'a, E>(env: &'a E, x: E::X) -> Option<E::Y>
     where E: Envelope<'a>,
           E::Y: Spatial + PartialEq + 'a,
+          <<E as Envelope<'a>>::Y as Spatial>::Scalar: Scalar,
 {
     let mut points = env.points();
     points.next().and_then(|mut left| {

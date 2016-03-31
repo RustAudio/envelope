@@ -39,7 +39,6 @@ impl<X, Y> Point for BezierPoint<X, Y>
           Y: PartialEq + NumCast + Spatial + Clone + Copy,
           Y::Scalar: Float,
 {
-    type Scalar = <Y as Spatial>::Scalar;
     type X = X;
     type Y = Y;
     #[inline(always)]

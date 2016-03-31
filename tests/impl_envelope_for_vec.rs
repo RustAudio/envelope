@@ -15,15 +15,13 @@ macro_rules! impl_point_and_envelope {
             y: $Y,
         }
         impl envelope::Point for Point {
-            type Scalar = <$Y as Spatial>::Scalar;
             type X = $X;
             type Y = $Y;
-            fn x_to_scalar(x: $X) -> Self::Scalar { x as Self::Scalar }
+            fn x_to_scalar(x: $X) -> <Self::Y as Spatial>::Scalar { x as <Self::Y as Spatial>::Scalar }
             fn x(&self) -> $X { self.x }
             fn y(&self) -> $Y { self.y }
         }
         impl<'a> Envelope<'a> for Points<Point> {
-            type Scalar = <$Y as Spatial>::Scalar;
             type X = $X;
             type Y = $Y;
             type Point = Point;
