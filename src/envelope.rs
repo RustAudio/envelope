@@ -142,18 +142,46 @@ pub trait Envelope<'a>: Sized {
         y(self, x)
     }
 
-    /// Sample the `Envelope`'s `y` value for every given `x` step starting from the first point's
-    /// `X` value.
+    /// Sample the `Envelope`'s `y` value for every given positive `x` step starting from the first
+    /// point's `X` value.
     ///
     /// The envelope will yield `Some(Y)` until the first step is out of range of all points on the
     /// y axis.
+    ///
+    /// Returns `None` if `start` is outside the bounds of all points.
+    ///
+    /// Note: This method assumes that the envelope points are ordered.
     #[inline]
-    fn step(&'a self, start: Self::X, step: Self::X) -> Step<'a, Self> {
-        Step {
-            env: self,
-            step: step,
-            next: start,
-        }
+    fn steps(&'a self, start: Self::X, step: Self::X) -> Option<Steps<'a, Self>> {
+        let mut points = self.points();
+        points.next().and_then(|mut left| {
+            let mut maybe_right = None;
+
+            // Iterate through `points` until `start` is between `left` and `right`
+            while let Some(point) = points.next() {
+                maybe_right = Some(point);
+                if point.x() < start {
+                    left = maybe_right.take().unwrap();
+                } else {
+                    break;
+                }
+            }
+
+            // Check that the remaining points bound the `start`.
+            match maybe_right {
+                Some(right) => if right.x() < start { return None; },
+                None => if left.x() < start { return None; },
+            }
+
+            Some(Steps {
+                points: points,
+                step: step,
+                next_x: start,
+                left: left,
+                maybe_right: maybe_right,
+                env: std::marker::PhantomData,
+            })
+        })
     }
 
     // /// An iterator yielding the X for each point at which the envelope intersects the given `y`.
@@ -171,39 +199,69 @@ pub trait Envelope<'a>: Sized {
 ///
 /// Returns `None` the first time `next` falls out of range of all points in `env`.
 #[derive(Clone)]
-pub struct Step<'a, E>
+pub struct Steps<'a, E>
     where E: Envelope<'a> + 'a,
 {
-    env: &'a E,
+    points: E::Points,
     step: E::X,
-    next: E::X,
+    next_x: E::X,
+    left: &'a E::Point,
+    maybe_right: Option<&'a E::Point>,
+    env: std::marker::PhantomData<E>,
 }
 
-impl<'a, E> Step<'a, E>
+impl<'a, E> Steps<'a, E>
     where E: Envelope<'a>,
 {
     /// This is useful when the step size must change between steps.
+    #[inline]
     pub fn set_step(&mut self, step: E::X) {
         self.step = step;
     }
+
+    /// Yields the next step along with its position along the step.
+    #[inline]
+    pub fn next_xy(&mut self) -> Option<(E::X, E::Y)>
+        where <E as Envelope<'a>>::X: std::ops::Add<Output=<E as Envelope<'a>>::X>,
+    {
+        let x = self.next_x.clone();
+        self.next().map(|y| (x, y))
+    }
 }
 
-impl<'a, E> Iterator for Step<'a, E>
+impl<'a, E> Iterator for Steps<'a, E>
     where E: Envelope<'a>,
           <E as Envelope<'a>>::X: std::ops::Add<Output=<E as Envelope<'a>>::X>,
 {
     type Item = E::Y;
     #[inline]
     fn next(&mut self) -> Option<Self::Item> {
-        // This method could be optimised by taking advantage of the fact that we don't need to
-        // check the "left" bounds after the first check, as every step increments to the "right".
-        self.env.y(self.next.clone()).map(|y| {
-            self.next = self.next.clone() + self.step.clone();
-            y
-        })
+        let Steps {
+            ref step,
+            ref mut points,
+            ref mut next_x,
+            ref mut left,
+            ref mut maybe_right,
+            ..
+        } = *self;
+
+        let x = next_x.clone();
+        *next_x = x.clone() + step.clone();
+        maybe_right.as_mut()
+            .and_then(|right| {
+                let x = x.clone();
+                while x > right.x() {
+                    *left = right;
+                    *right = match points.next() {
+                        Some(point) => point,
+                        None => return None,
+                    };
+                }
+                Some(Point::interpolate(x, *left, *right))
+            })
+            .or_else(|| if x == left.x() { Some(left.y()) } else { None })
     }
 }
-
 
 
 #[inline]
@@ -255,47 +313,38 @@ fn y<'a, E>(env: &'a E, x: E::X) -> Option<E::Y>
     where E: Envelope<'a>,
           E::Y: Spatial + PartialEq + 'a,
 {
+    let mut points = env.points();
+    points.next().and_then(|mut left| {
+        let mut maybe_right = None;
 
-    let mut points: E::Points = env.points();
-    let len = points.len();
-
-    // If we have less than two points, there is nothing to interpolate.
-    if len < 2 {
-        // However if we only have one point...
-        if len == 1 {
-            // And that point happens to be exactly equal to the given X.
-            let only_point: &E::Point = points.clone().next().unwrap();
-            if only_point.x() == x {
-                // Return the Y at that given X.
-                return Some(only_point.y());
+        // Iterate through `points` until `x` is between `left` and `right`
+        while let Some(point) = points.next() {
+            maybe_right = Some(point);
+            if point.x() < x {
+                left = maybe_right.take().unwrap();
+            } else {
+                break;
             }
         }
-        return None;
-    }
 
-    // If the given `x` is less than our first point's `X` or greater than our last point's
-    // `X`, we cannot interpolate the envelope and thus must return `None`.
-    let first_point: &E::Point = points.clone().next().unwrap();
-    let last_point: &E::Point = points.clone().last().unwrap();
-    if x < first_point.x() || x > last_point.x() {
-        return None;
-    }
-
-    // Otherwise, we know that X lies within our points and that we can interpolate it!
-    let mut end_idx = 1;
-    let last_idx = len - 1;
-    let mut end_points = points.clone().skip(1);
-    while end_idx < last_idx {
-        if x >= end_points.next().unwrap().x() {
-            end_idx += 1;
-        } else {
-            break;
+        // Check that the remaining points bound the `x`.
+        match maybe_right {
+            Some(right) => if right.x() < x { return None; },
+            None => if left.x() < x { return None; },
         }
-    }
 
-    let start_idx = end_idx - 1;
-    let start_point = points.clone().nth(start_idx).unwrap();
-    let end_point = points.nth(end_idx).unwrap();
-    Some(Point::interpolate(x, start_point, end_point))
+        maybe_right
+            .and_then(|mut right| {
+                let x = x.clone();
+                while x > right.x() {
+                    left = right;
+                    right = match points.next() {
+                        Some(point) => point,
+                        None => return None,
+                    };
+                }
+                Some(Point::interpolate(x, left, right))
+            })
+            .or_else(|| if x == left.x() { Some(left.y()) } else { None })
+    })
 }
-
