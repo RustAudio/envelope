@@ -2,7 +2,7 @@ use interpolate::{self, Scalar};
 use interpolation::Spatial;
 
 /// Implement this for types to be used as points on an Envelope.
-pub trait Point: Copy + Clone {
+pub trait Point: Clone {
     type Scalar: Scalar;
     type X: PartialEq + Clone;
     type Y: PartialEq + Spatial<Scalar=Self::Scalar>;

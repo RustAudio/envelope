@@ -1,4 +1,3 @@
-
 use interpolate;
 use interpolation::Spatial;
 use num::{Float, NumCast};

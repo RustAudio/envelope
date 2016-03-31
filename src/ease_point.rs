@@ -1,4 +1,3 @@
-
 use interpolate;
 use interpolation::{Ease, EaseFunction, Spatial};
 use point::Point;
