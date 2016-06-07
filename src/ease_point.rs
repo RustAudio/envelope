@@ -1,4 +1,3 @@
-
 use interpolate;
 use interpolation::{Ease, EaseFunction, Spatial};
 use point::Point;
@@ -8,10 +7,9 @@ use num::{Float, NumCast};
 /// A type whose interpolation may involve some sort of easing.
 #[derive(Clone, Copy)]
 pub struct EasePoint<X, Y>
-    where
-        X: NumCast + Clone + Copy,
-        Y: Spatial + Clone + Copy,
-        Y::Scalar: Float + Ease,
+    where X: PartialEq + NumCast + Clone + Copy,
+          Y: PartialEq + Spatial + Clone + Copy,
+          Y::Scalar: Float + Ease,
 {
     pub x: X,
     pub y: Y,
@@ -20,10 +18,9 @@ pub struct EasePoint<X, Y>
 
 
 impl<X, Y> EasePoint<X, Y>
-    where
-        X: NumCast + Clone + Copy,
-        Y: Spatial + Clone + Copy,
-        Y::Scalar: Float + Ease,
+    where X: PartialEq + NumCast + Clone + Copy,
+          Y: PartialEq + Spatial + Clone + Copy,
+          Y::Scalar: Float + Ease,
 {
     /// Constructor for an EasePoint.
     #[inline]
@@ -37,12 +34,14 @@ impl<X, Y> EasePoint<X, Y>
 }
 
 
-impl<X, Y> Point<X, Y> for EasePoint<X, Y>
-    where
-        X: NumCast + Clone + Copy,
-        Y: Spatial + Clone + Copy,
-        Y::Scalar: Float + Ease,
+impl<X, Y> Point for EasePoint<X, Y>
+    where X: PartialEq + NumCast + Clone + Copy,
+          Y: PartialEq + Spatial + Clone + Copy,
+          Y::Scalar: Float + Ease,
 {
+    type X = X;
+    type Y = Y;
+
     #[inline(always)]
     fn x_to_scalar(x: X) -> Y::Scalar {
         NumCast::from(x).unwrap()
@@ -52,10 +51,7 @@ impl<X, Y> Point<X, Y> for EasePoint<X, Y>
     #[inline(always)]
     fn y(&self) -> Y { self.y }
     #[inline(always)]
-    fn interpolate(x: X, start: &Self, end: &Self) -> Y where
-        Y: PartialEq,
-        X: PartialEq,
-    {
+    fn interpolate(x: X, start: &Self, end: &Self) -> Y {
         match start.maybe_ease_fn {
             Some(ease_fn) => interpolate::ease(x, start, end, ease_fn),
             None => interpolate::linear(x, start, end),

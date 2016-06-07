@@ -1,11 +1,10 @@
-
 extern crate envelope;
-
 
 use envelope::Envelope;
 use envelope::interpolation::Spatial;
 use std::iter::{FromIterator, once};
 
+struct Points<P>(Vec<P>);
 
 /// Implement a Point and Envelope for the given X and Y types.
 macro_rules! impl_point_and_envelope {
@@ -15,14 +14,19 @@ macro_rules! impl_point_and_envelope {
             x: $X,
             y: $Y,
         }
-        impl envelope::Point<$X, $Y> for Point {
-            fn x_to_scalar(x: $X) -> <$Y as Spatial>::Scalar { x as <$Y as Spatial>::Scalar }
+        impl envelope::Point for Point {
+            type X = $X;
+            type Y = $Y;
+            fn x_to_scalar(x: $X) -> <Self::Y as Spatial>::Scalar { x as <Self::Y as Spatial>::Scalar }
             fn x(&self) -> $X { self.x }
             fn y(&self) -> $Y { self.y }
         }
-        impl<'a> Envelope<'a, Point> for Vec<Point> {
-            type Points = ::std::slice::Iter<'a, Point>;
-            fn points(&'a self) -> Self::Points { self.iter() }
+        impl<'a> Envelope<'a> for Points<Point> {
+            type X = $X;
+            type Y = $Y;
+            type Point = Point;
+            type Points = std::slice::Iter<'a, Point>;
+            fn points(&'a self) -> Self::Points { self.0.iter() }
         }
     };
 }
@@ -43,11 +47,11 @@ macro_rules! test_x_y_float {
             }
 
             // Values exactly on points.
-            let points_a = Vec::from_iter((0..1_000).map(|i| {
+            let points_a = Points(Vec::from_iter((0..1_000).map(|i| {
                 let x = i as $X;
                 let value = sine(x);
                 Point { x: x, y: value } 
-            }));
+            })));
             for i in 0..1_000 {
                 let x = i as $X;
                 let value = sine(x);
@@ -62,6 +66,7 @@ macro_rules! test_x_y_float {
             let points_b: Vec<Point> = once(Point { x: 0 as $X, y: 0.0 as $Y })
                 .chain(once(Point { x: 10 as $X, y: 1.0 as $Y }))
                 .collect();
+            let points_b = Points(points_b);
             assert_eq!(points_b.y(0 as $X).expect("Cannot interpolate 0"), 0.0 as $Y);
             assert_eq!(points_b.y(1 as $X).expect("Cannot interpolate 1"), 0.1 as $Y);
             assert_eq!(points_b.y(2 as $X).expect("Cannot interpolate 2"), 0.2 as $Y);
@@ -88,15 +93,15 @@ macro_rules! test_x_y_float {
             assert_eq!(points_b.point_idx_on_or_after(10 as $X), Some(1));
             assert_eq!(points_b.point_idx_on_or_after(0 as $X), Some(0));
 
-            assert_eq!(*points_b.point_before(5 as $X).unwrap(), points_b[0]);
-            assert_eq!(*points_b.point_on_or_before(5 as $X).unwrap(), points_b[0]);
-            assert_eq!(*points_b.point_on_or_before(0 as $X).unwrap(), points_b[0]);
-            assert_eq!(*points_b.point_on_or_before(10 as $X).unwrap(), points_b[1]);
+            assert_eq!(*points_b.point_before(5 as $X).unwrap(), points_b.0[0]);
+            assert_eq!(*points_b.point_on_or_before(5 as $X).unwrap(), points_b.0[0]);
+            assert_eq!(*points_b.point_on_or_before(0 as $X).unwrap(), points_b.0[0]);
+            assert_eq!(*points_b.point_on_or_before(10 as $X).unwrap(), points_b.0[1]);
 
-            assert_eq!(*points_b.point_after(5 as $X).unwrap(), points_b[1]);
-            assert_eq!(*points_b.point_on_or_after(5 as $X).unwrap(), points_b[1]);
-            assert_eq!(*points_b.point_on_or_after(0 as $X).unwrap(), points_b[0]);
-            assert_eq!(*points_b.point_on_or_after(10 as $X).unwrap(), points_b[1]);
+            assert_eq!(*points_b.point_after(5 as $X).unwrap(), points_b.0[1]);
+            assert_eq!(*points_b.point_on_or_after(5 as $X).unwrap(), points_b.0[1]);
+            assert_eq!(*points_b.point_on_or_after(0 as $X).unwrap(), points_b.0[0]);
+            assert_eq!(*points_b.point_on_or_after(10 as $X).unwrap(), points_b.0[1]);
         }
 
     };
@@ -137,11 +142,11 @@ macro_rules! test_x_y_int {
             }
 
             // Values exactly on points.
-            let points_a = Vec::from_iter((0..1_000).map(|i| {
+            let points_a = Points(Vec::from_iter((0..1_000).map(|i| {
                 let x = i as $X;
                 let value = sine(x);
                 Point { x: x, y: value } 
-            }));
+            })));
             for i in 0..1_000 {
                 let x = i as $X;
                 let value = sine(x);
@@ -156,6 +161,7 @@ macro_rules! test_x_y_int {
             let points_b: Vec<Point> = once(Point { x: 0 as $X, y: 0 as $Y })
                 .chain(once(Point { x: 10 as $X, y: 100 as $Y }))
                 .collect();
+            let points_b = Points(points_b);
             assert_eq!(points_b.y(0 as $X).expect("Cannot interpolate 0"), 0 as $Y);
             assert_eq!(points_b.y(1 as $X).expect("Cannot interpolate 1"), 10 as $Y);
             assert_eq!(points_b.y(2 as $X).expect("Cannot interpolate 2"), 20 as $Y);
@@ -182,15 +188,15 @@ macro_rules! test_x_y_int {
             assert_eq!(points_b.point_idx_on_or_after(10 as $X), Some(1));
             assert_eq!(points_b.point_idx_on_or_after(0 as $X), Some(0));
 
-            assert_eq!(*points_b.point_before(5 as $X).unwrap(), points_b[0]);
-            assert_eq!(*points_b.point_on_or_before(5 as $X).unwrap(), points_b[0]);
-            assert_eq!(*points_b.point_on_or_before(0 as $X).unwrap(), points_b[0]);
-            assert_eq!(*points_b.point_on_or_before(10 as $X).unwrap(), points_b[1]);
+            assert_eq!(*points_b.point_before(5 as $X).unwrap(), points_b.0[0]);
+            assert_eq!(*points_b.point_on_or_before(5 as $X).unwrap(), points_b.0[0]);
+            assert_eq!(*points_b.point_on_or_before(0 as $X).unwrap(), points_b.0[0]);
+            assert_eq!(*points_b.point_on_or_before(10 as $X).unwrap(), points_b.0[1]);
 
-            assert_eq!(*points_b.point_after(5 as $X).unwrap(), points_b[1]);
-            assert_eq!(*points_b.point_on_or_after(5 as $X).unwrap(), points_b[1]);
-            assert_eq!(*points_b.point_on_or_after(0 as $X).unwrap(), points_b[0]);
-            assert_eq!(*points_b.point_on_or_after(10 as $X).unwrap(), points_b[1]);
+            assert_eq!(*points_b.point_after(5 as $X).unwrap(), points_b.0[1]);
+            assert_eq!(*points_b.point_on_or_after(5 as $X).unwrap(), points_b.0[1]);
+            assert_eq!(*points_b.point_on_or_after(0 as $X).unwrap(), points_b.0[0]);
+            assert_eq!(*points_b.point_on_or_after(10 as $X).unwrap(), points_b.0[1]);
         }
 
     };
