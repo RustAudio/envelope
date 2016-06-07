@@ -12,3 +12,8 @@ homepage = "https://github.com/RustAudio/envelope"
 [dependencies]
 interpolation = "0.1.0"
 num = "0.1.31"
+serde = { optional = true, version = "0.7.0" }
+serde_json = { optional = true, version = "0.7.0" }
+
+[features]
+serde_serialization = ["serde", "serde_json"]
