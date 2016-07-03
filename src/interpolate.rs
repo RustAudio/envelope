@@ -77,6 +77,14 @@ pub fn ease<P>(x: P::X, start: &P, end: &P, ease_fn: EaseFunction) -> P::Y
 }
 
 
+/// Get bezier point for bezier curve.
+#[inline]
+fn bezier_pt<T>(n1: T, n2: T, perc: T) -> T
+    where T: Scalar
+{
+    (n2 - n1.clone()) * perc + n1
+}
+
 /// Interpolate between the given start and end points given some bezier curve.
 #[inline]
 pub fn bezier<P>(x: P::X, start: &P, end: &P, curve: <P::Y as Spatial>::Scalar) -> P::Y
@@ -85,15 +93,6 @@ pub fn bezier<P>(x: P::X, start: &P, end: &P, curve: <P::Y as Spatial>::Scalar) 
           <P::Y as Spatial>::Scalar: Scalar + NumCast,
 {
     maybe_exact_point(&x, start, end).unwrap_or_else(|| {
-
-        /// Get bezier point for bezier curve.
-        #[inline]
-        fn bezier_pt<T>(n1: T, n2: T, perc: T) -> T
-            where T: Scalar
-        {
-            (n2 - n1.clone()) * perc + n1
-        }
-
         let x = P::x_to_scalar(x.clone());
         let start_x = P::x_to_scalar(start.x());
         let end_x = P::x_to_scalar(end.x());
